@@ -9,8 +9,8 @@ num_steps = 50          # number of time steps
 dt = T / num_steps      
 mu = 0.0                # moisture parameter
 L = 10                  # domain length
-eps = 1e-1             # how much the ink particles like to be in the solvent
-M_sig = 0.2*0.03               # product of evaporation coefficient and surface tension
+eps = 1e-1              # how much the ink particles like to be in the solvent
+M_sig = 0.2*0.03        # product of evaporation coefficient and surface tension
                         # appears through non-dimensionalisation
 
 # mesh and function space (linear Lagrange elements and 1d interval)
@@ -29,8 +29,8 @@ n_k = interpolate(Expression("0.1*exp(-pow(x[0]-L/2, 2)/0.01)", L=L, degree=2), 
 n_0 = n_k.copy(deepcopy=True)
 
 # mobility function
-def D(p):
-    return (1+p)**3
+def D(distr):
+    return 1
 
 # weak formulation
 phi = Function(V)
@@ -39,7 +39,7 @@ F_phi = (phi - phi_k)/dt*v*dx + inner(grad(phi), grad(v))*dx - (-phi**3 + phi - 
 J_phi = derivative(F_phi, phi)
 
 n = Function(V)
-F_n = (n - n_k)/dt*v*dx + (1/M_sig)*D(phi)*inner(grad(n) + eps*n*grad(phi), grad(v))*dx
+F_n = (n - n_k)/dt*v*dx + (1/M_sig)*D(n)*inner(grad(n) + eps*n*grad(phi), grad(v))*dx
 J_n = derivative(F_n, n)
 
 # set up of the solvers
