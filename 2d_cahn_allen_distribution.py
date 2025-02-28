@@ -4,16 +4,19 @@ import ufl
 import numpy as np
 import matplotlib.pyplot as plt
 import config as cfg
+import figure_handler as fh
 
 # available phi ic options: constant, tanh, cosine, gaussian, sine_checkerboard, random
-phi_init_option = "gaussian"
+phi_init_option = "random"
 
 # available n ic options: constant, gaussian, half_domain
 n_init_option = "gaussian"
 
 # mobility function
-def D(p):
-    return 0.05*(1+ufl.tanh(20*phi))
+#D = lambda p: 0.05*(1+ufl.tanh(20*phi))
+n_thr_below = 0.5
+n_thr_above = 1
+D = lambda p, n: 0.05*(1+ufl.tanh(10*phi))*(1-ufl.tanh(10*(n - n_thr_below)*(n_thr_below - n)))
 
 config = cfg.Config()
 
@@ -28,7 +31,7 @@ F_phi = (phi - phi_k) / config.dt * v * dx + inner(grad(phi), grad(v)) * dx + (p
 J_phi = derivative(F_phi, phi)
 
 n = Function(config.V)
-F_n = (n - n_k) / config.dt * v * dx + (1 / config.M_sig) * D(phi) * inner(grad(n) + config.eps * n * grad(phi), grad(v)) * dx
+F_n = (n - n_k) / config.dt * v * dx + (1 / config.M_sig) * D(phi, n) * inner(grad(n) + config.eps * n * grad(phi), grad(v)) * dx
 J_n = derivative(F_n, n)
 
 free_energy = (-(phi**2)/2 + (phi**4)/4 + config.sigma/2*inner(grad(phi), grad(phi)) -
@@ -68,61 +71,10 @@ for i in range(config.num_steps):
     n_xdmf.write(n_k, t)
     free_energy_vals.append(assemble(free_energy))
 
-plt.rcParams.update({'font.size': 18})
 
-fig, axes = plt.subplots(2, 2, figsize=(16, 12), constrained_layout=True)
-cmap = "coolwarm"
 
-plt.sca(axes[0, 0])
-c0 = plot(phi_0, mode="color")
-c0.set_clim(-1, 1)
-c0.set_cmap(cmap)
-axes[0, 0].set_title("Initial condition (order parameter)")
-axes[0, 0].set_xlabel("x")
-axes[0, 0].set_ylabel("y")
-
-plt.sca(axes[0, 1])
-c1 = plot(phi, mode="color")
-c1.set_clim(-1, 1)
-c1.set_cmap(cmap)
-axes[0, 1].set_title(f"Solution at t={config.T} (order parameter)")
-axes[0, 1].set_xlabel("x")
-axes[0, 1].set_ylabel("y")
-
-cbar1 = fig.colorbar(c1, ax=[axes[0, 0], axes[0, 1]], orientation='vertical', shrink=0.8)
-cbar1.set_label("Order parameter")
-
-#########################################
-cmap = "binary"
-nmin = n_0.vector().min()
-nmax = n_0.vector().max()
-
-plt.sca(axes[1, 0])
-c2 = plot(n_0, mode="color")
-c2.set_clim(nmin, nmax)
-c2.set_cmap(cmap)
-axes[1, 0].set_title("Initial condition (distribution)")
-axes[1, 0].set_xlabel("x")
-axes[1, 0].set_ylabel("y")
-
-plt.sca(axes[1, 1])
-c3 = plot(n, mode="color")
-c3.set_clim(nmin, nmax)
-c3.set_cmap(cmap)
-axes[1, 1].set_title(f"Solution at t={config.T} (distribution)")
-axes[1, 1].set_xlabel("x")
-axes[1, 1].set_ylabel("y")
-
-cbar2 = fig.colorbar(c3, ax=[axes[1, 0], axes[1, 1]], orientation='vertical', shrink=0.8)
-cbar2.set_label("Distribution")
-
-plt.show()
-plt.close(fig)
-#################################
-plt.figure(figsize=(12, 6))
-plt.plot([config.dt*k for k in range(config.num_steps)], free_energy_vals)
-plt.xlabel("Time")
-plt.ylabel("Free energy")
-plt.title("Evolution of free energy over time")
-
-plt.show()
+figure_handler = fh.FigureHandler(config)
+#figure_handler.individual_plots([phi_0, phi], [n_0, n], [0, config.T])
+#figure_handler.two_by_two_plot(phi, phi_0, n, n_0)
+#figure_handler.free_energy_plot(free_energy_vals)
+figure_handler.horizont_slice_n_plot(n, 0.5, 13, 100)
