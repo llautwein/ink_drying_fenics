@@ -10,16 +10,24 @@ class FigureHandler():
         :param cfg: config data
         """
         self.config = config
-        plt.rcParams.update({'font.size': 18})
+        plt.rcParams.update({
+            "axes.titlesize": 18,
+            "axes.labelsize": 16,
+            "xtick.labelsize": 14,
+            "ytick.labelsize": 14,
+            "legend.fontsize": 14,
+        })
 
-    def individual_plots(self, phi_solutions, n_solutions, timestamps):
+    def individual_plots(self, phi_solutions, n_solutions, timestamps, savefig=False):
         """
         Shows one heatmap plot for each phi and n solution.
         :param phi_solutions: List of phi_solutions
         :param n_solutions: List of n_solutions
         :param timestamps: corresponding times of the solutions
+        :param savefig: whether to save the figure
         """
-        cmap_phi = "coolwarm"
+        path = "Results/png/individual"
+        cmap_phi = "coolwarm_r"
         cmap_n = "binary"
         for k in range(len(phi_solutions)):
             plt.figure()
@@ -27,18 +35,24 @@ class FigureHandler():
             fig_phi.set_cmap(cmap_phi)
             plt.xlabel("x")
             plt.ylabel("y")
-            plt.title(f"t={timestamps[k]}")
+            plt.title(f"t={round(timestamps[k], 2)}")
             plt.colorbar(fig_phi)
-            plt.show()
+            if savefig:
+                plt.savefig(f"{path}/phi_t={round(timestamps[k], 2)}.png")
+            else:
+                plt.show()
 
             plt.figure()
             fig_n = plot(n_solutions[k], mode="color")
             fig_n.set_cmap(cmap_n)
             plt.xlabel("x")
             plt.ylabel("y")
-            plt.title(f"t={timestamps[k]}")
+            plt.title(f"t={round(timestamps[k], 2)}")
             plt.colorbar(fig_n)
-            plt.show()
+            if savefig:
+                plt.savefig(f"{path}/n_t={round(timestamps[k], 2)}.png")
+            else:
+                plt.show()
 
 
     def two_by_two_plot(self, phi, phi_0, n, n_0):
@@ -51,7 +65,7 @@ class FigureHandler():
         :param n_0: initial n
         """
         fig, axes = plt.subplots(2, 2, figsize=(16, 12), constrained_layout=True)
-        cmap = "coolwarm"
+        cmap = "coolwarm_r"
 
         plt.sca(axes[0, 0])
         c0 = plot(phi_0, mode="color")
@@ -100,31 +114,45 @@ class FigureHandler():
         plt.close(fig)
 
 
-    def free_energy_plot(self, free_energy_vals):
+    def free_energy_plot(self, free_energy_vals, savefig=False):
+        """
+        Plot the time evolution of the free energy function
+        :param free_energy_vals: Values of the free energy
+        :param savefig: whether to save the figure
+        """
+        path = "Results/png/free_energy"
         plt.figure(figsize=(12, 6))
         plt.plot([self.config.dt * k for k in range(self.config.num_steps)], free_energy_vals)
         plt.xlabel("Time")
         plt.ylabel("Free energy")
         plt.title("Evolution of free energy over time")
+        if savefig:
+            plt.savefig(f"{path}/free_energy.png")
+        else:
+            plt.show()
 
-        plt.show()
 
-
-    def horizont_slice_n_plot(self, n, timestamp, ycoord, num_x_points):
-        # Todo: Add that multiple of these plots can easily be summarised in one plot
+    def horizont_slice_n_plot(self, n_solutions, timestamps, ycoord, num_x_points, savefig=False):
         """
         Takes a horizontal slice of the 2d solution and plots the distribution along this line
-        :param n: ink distribution solution
-        :param ycoord: ycoord where the horizontal slice starts
+        :param n_solutions: ink distribution solutions
+        :param timestamps: corresponding time point of the n solutions
+        :param ycoord: y-coord where the horizontal slice starts
         :param num_x_points: number of points along the horizontal slice
+        :param savefig: whether to save the figure
         """
+        path = "Results/png/slice"
         xvals = np.linspace(0, self.config.L, num_x_points)
-        n_vals = [n(xvals[k], ycoord) for k in range(len(xvals))]
+        n_vals = []
         plt.figure()
-        plt.plot(xvals, n_vals)
+        for i in range(len(n_solutions)):
+            n_vals.append([n_solutions[i](xvals[j], ycoord) for j in range(len(xvals))])
+            plt.plot(xvals, n_vals[i], label=f"t={round(timestamps[i], 2)}")
         plt.xlabel("x")
         plt.ylabel("n")
-        plt.title(f"Horizontal slice of n at y={ycoord}, t={timestamp}")
-        plt.show()
-
+        plt.legend()
+        if savefig:
+            plt.savefig(f"{path}/slice_plot.png")
+        else:
+            plt.show()
 

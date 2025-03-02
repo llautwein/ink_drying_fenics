@@ -6,10 +6,10 @@ import numpy as np
 class Config:
 
     def __init__(self):
-        self.T = 0.5  # Time interval length
-        self.num_steps = 10  # number of time steps
+        self.T = 10  # Time interval length
+        self.num_steps = 40  # number of time steps
         self.dt = self.T / self.num_steps
-        self.mu = -0.5  # moisture parameter
+        self.mu = 0.5  # moisture parameter
         self.L = 25  # domain length
         self.eps = -1  # how much the ink particles like to be in the solvent
         self.sigma = 0.03 # surface tension
@@ -31,7 +31,7 @@ class Config:
 
         self.n_options = {
             "constant": Constant(0),
-            "gaussian": Expression("1.5*exp((-pow(x[0]-L/2,2) - pow(x[1]-L/2,2))/100)", L=self.L, degree=2),
+            "gaussian": Expression("1*exp((-pow(x[0]-L/2,2) - pow(x[1]-L/2,2))/100)", L=self.L, degree=2),
             "half_domain": Expression("x[0] < L/2 ? 0.2 : 0", L=self.L, degree=1),
             "two_drop": Expression("3 * exp(-pow(x[0]-L/4,2)/0.1) * exp(-pow(x[1]-L/2,2)/0.1) + 3 * exp(-pow(x[0]-(3*L)/4,2)/0.1) * exp(-pow(x[1]-L/2,2)/0.1)",
                         degree=2, L=self.L)

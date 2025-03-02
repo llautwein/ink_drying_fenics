@@ -7,7 +7,7 @@ import config as cfg
 import figure_handler as fh
 
 # available phi ic options: constant, tanh, cosine, gaussian, sine_checkerboard, random
-phi_init_option = "random"
+phi_init_option = "gaussian"
 
 # available n ic options: constant, gaussian, half_domain
 n_init_option = "gaussian"
@@ -16,7 +16,7 @@ n_init_option = "gaussian"
 #D = lambda p: 0.05*(1+ufl.tanh(20*phi))
 n_thr_below = 0.5
 n_thr_above = 1
-D = lambda p, n: 0.05*(1+ufl.tanh(10*phi))*(1-ufl.tanh(10*(n - n_thr_below)*(n_thr_below - n)))
+D = lambda p, n: 0.05*(1+ufl.tanh(10*phi))*(1+ufl.tanh(10*(n - n_thr_below)*(n_thr_above - n)))
 
 config = cfg.Config()
 
@@ -58,6 +58,7 @@ n_xdmf.write(n_k, 0)
 iterates_phi = [phi_0]
 iterates_n = [n_0]
 free_energy_vals = []
+grad_phi_vals = []
 for i in range(config.num_steps):
     t = (i+1)*config.dt
     solver_phi.solve()
@@ -70,11 +71,21 @@ for i in range(config.num_steps):
     phi_xdmf.write(phi_k, t)
     n_xdmf.write(n_k, t)
     free_energy_vals.append(assemble(free_energy))
+    grad_phi_vals.append(assemble(inner(grad(phi), grad(phi)) * dx))
 
+print(grad_phi_vals)
 
+first_timestamp = 10
+second_timestamp = 25
+phi_solutions = [phi_0, iterates_phi[first_timestamp], iterates_phi[second_timestamp], phi]
+n_solutions = [n_0, iterates_n[first_timestamp], iterates_n[second_timestamp], n]
+timestamps = [0, first_timestamp*config.dt, second_timestamp*config.dt, config.T]
 
 figure_handler = fh.FigureHandler(config)
-#figure_handler.individual_plots([phi_0, phi], [n_0, n], [0, config.T])
+save_slice = True
+save_individual = True
+save_free_energy = False
+figure_handler.individual_plots(phi_solutions, n_solutions, timestamps, save_individual)
 #figure_handler.two_by_two_plot(phi, phi_0, n, n_0)
-#figure_handler.free_energy_plot(free_energy_vals)
-figure_handler.horizont_slice_n_plot(n, 0.5, 13, 100)
+#figure_handler.free_energy_plot(free_energy_vals, save_free_energy)
+figure_handler.horizont_slice_n_plot(n_solutions, timestamps, 12.5, 100, save_slice)
