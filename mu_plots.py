@@ -4,7 +4,7 @@ import config as cfg
 import numpy as np
 
 """
-This script imports the lists which contain the measure values for differents mus and plots the graphs
+This script imports the lists which contain the measure values for different mus and plots the graphs
 """
 
 random_gauss_path = "Results/png/mu_dependence/random_gauss"

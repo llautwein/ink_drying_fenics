@@ -171,7 +171,7 @@ class FigureHandler():
 
         plt.figure()
         plt.plot(mu_list, distance_phi_list, label="distance\nmeasure phi")
-        plt.legend(loc="lower right")
+        plt.legend(loc="lower left")
         plt.show()
 
         plt.figure()
