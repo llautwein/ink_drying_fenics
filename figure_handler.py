@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from dolfin import *
+import csv
 
 class FigureHandler():
 
@@ -155,4 +156,34 @@ class FigureHandler():
             plt.savefig(f"{path}/slice_plot.png")
         else:
             plt.show()
+
+    @staticmethod
+    def read_csv(name):
+        with open(f"{name}.csv", "r") as f:
+            reader = csv.reader(f)
+            return [float(row[0]) for row in reader]
+
+
+    def mu_dependence_plots(self, mu_list, path_distance_phi, path_distance_n, path_kullback_n):
+        distance_phi_list = self.read_csv(path_distance_phi)
+        distance_n_list = self.read_csv(path_distance_n)
+        kullback_n_list = self.read_csv(path_kullback_n)
+
+        plt.figure()
+        plt.plot(mu_list, distance_phi_list, label="distance\nmeasure phi")
+        plt.legend(loc="lower right")
+        plt.show()
+
+        plt.figure()
+        plt.plot(mu_list, distance_n_list, label="distance\nmeasure n")
+        plt.legend(loc="upper left")
+        plt.show()
+
+        plt.figure()
+        plt.plot(mu_list, kullback_n_list, label="kullback\nmeasure n")
+        plt.legend(loc="upper left")
+        plt.show()
+
+
+
 
